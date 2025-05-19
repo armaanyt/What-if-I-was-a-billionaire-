@@ -1,0 +1,95 @@
+// Initial money - $100 billion
+let money = 100000000000;
+
+// Item data similar to what we found on neal.fun
+const items = [
+    { id: 1, name: "Big Mac", price: 2, image: "big-mac.jpg" },
+    { id: 2, name: "Flip Flops", price: 3, image: "flip-flops.jpg" },
+    { id: 3, name: "Coca-Cola Pack", price: 5, image: "coca-cola-pack.jpg" },
+    // ... more items with increasing prices
+    { id: 40, name: "NBA Team", price: 2120000000, image: "nba-team.jpg" },
+];
+
+// Item quantities
+const itemQuantities = {};
+items.forEach(item => itemQuantities[item.id] = 0);
+
+// Format number with commas
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// Update money display
+function updateMoney() {
+    document.getElementById("money").textContent = formatNumber(money);
+    updateButtons();
+}
+
+// Update button states based on available money
+function updateButtons() {
+    items.forEach(item => {
+        const buyBtn = document.getElementById(`buy-${item.id}`);
+        if (buyBtn) {
+            buyBtn.disabled = item.price > money;
+        }
+        
+        const sellBtn = document.getElementById(`sell-${item.id}`);
+        if (sellBtn) {
+            sellBtn.disabled = itemQuantities[item.id] <= 0;
+        }
+    });
+}
+
+// Buy an item
+function buyItem(id) {
+    const item = items.find(i => i.id === id);
+    if (money >= item.price) {
+        money -= item.price;
+        itemQuantities[id]++;
+        document.getElementById(`counter-${id}`).textContent = itemQuantities[id];
+        updateMoney();
+    }
+}
+
+// Sell an item
+function sellItem(id) {
+    const item = items.find(i => i.id === id);
+    if (itemQuantities[id] > 0) {
+        money += item.price;
+        itemQuantities[id]--;
+        document.getElementById(`counter-${id}`).textContent = itemQuantities[id];
+        updateMoney();
+    }
+}
+
+// Generate item HTML
+function generateItemHTML(item) {
+    return `
+        <div class="item">
+            <img class="item-image" src="images/${item.image}" alt="${item.name}">
+            <h3 class="item-name">${item.name}</h3>
+            <p class="item-price">$${formatNumber(item.price)}</p>
+            <div class="controls">
+                <button id="sell-${item.id}" onclick="sellItem(${item.id})" disabled>Sell</button>
+                <span class="counter" id="counter-${item.id}">0</span>
+                <button id="buy-${item.id}" onclick="buyItem(${item.id})">Buy</button>
+            </div>
+        </div>
+    `;
+}
+
+// Initialize the page
+function init() {
+    const container = document.getElementById("items-container");
+    let itemsHTML = '';
+    
+    items.forEach(item => {
+        itemsHTML += generateItemHTML(item);
+    });
+    
+    container.innerHTML = itemsHTML;
+    updateMoney();
+}
+
+// Start the app when the page loads
+window.onload = init;
